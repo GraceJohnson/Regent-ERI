@@ -376,7 +376,7 @@ do
 end
 
 
-__demand(__cuda)
+__demand(__cuda, __leaf)
 task compute_integrals(r_eri          : region(ispace(int2d), SIntegral),
                        rx_pairlists   : region(ispace(int1d), Pairlist),
                        ry_pairlists   : region(ispace(int1d), Pairlist),
@@ -390,16 +390,9 @@ do
   var pi12 = c.sqrt(c.M_PI)
   var pi52 = c.pow(c.M_PI, 5.0/2.0)
 
-  var xsize = rx_AOpairlists.ispace.volume 
-  var ysize = ry_AOpairlists.ispace.volume 
-
-  var AO2d_ispace = ispace(int1d, xsize*ysize)
-  
-  for AO2d in AO2d_ispace do
-    var x = (AO2d % xsize) + rx_AOpairlists.ispace.bounds.lo
-    var y = (AO2d / xsize) + ry_AOpairlists.ispace.bounds.lo
-    var AO1 = rx_AOpairlists[x]
-    var AO2 = ry_AOpairlists[y]
+  for e in r_eri do
+    var AO1 = rx_AOpairlists[e.x]
+    var AO2 = ry_AOpairlists[e.y]
 
     var integral = 0.0
     for i1 = AO1.start_idx, AO1.end_idx do
@@ -424,7 +417,7 @@ do
         end
       end
     end 
-    r_eri[{x, y}].s_int = integral
+    e.s_int = integral
   end
 
 end
